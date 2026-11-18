@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jarvis</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <main>
+    <header>
+      <div class="reactor" id="reactor"></div>
+      <div>
+        <h1>J.A.R.V.I.S.</h1>
+        <div class="sub" id="status">Avvio dei sistemi…</div>
+      </div>
+      <div class="hbtns">
+        <button class="ghost" id="voiceBtn" title="Risposte a voce">🔊 Voce</button>
+        <button class="ghost" id="panelBtn" title="Pannello">☰</button>
+      </div>
+    </header>
+    <div id="updateBar" class="updatebar" hidden>
+      <span id="updateText"></span>
+      <button class="ghost small" id="updateInstall">Riavvia e aggiorna</button>
+    </div>
+    <div id="log"></div>
+    <form id="form">
+      <button type="button" class="round" id="mic" title="Detta a voce">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      </button>
+      <textarea id="input" rows="1" placeholder="Parla con Jarvis…  (Invio per inviare, Maiusc+Invio per andare a capo)"></textarea>
+      <button type="submit" class="round" id="send" title="Invia">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+      <button type="button" class="round" id="stop" title="Interrompi" hidden>
+        <svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>
+      </button>
+    </form>
+  </main>
+
+  <aside class="side" id="side">
+    <nav class="tabs">
+      <button data-tab="mem" class="on">Memoria</button>
+      <button data-tab="rem">Promemoria</button>
+      <button data-tab="evo">Evoluzione</button>
+      <button data-tab="set">⚙</button>
+    </nav>
+
+    <section class="tab" id="tab-mem">
+      <p class="hint">Quello che Jarvis ha imparato su di te. Cresce mentre parlate.</p>
+      <div class="list" id="mem"></div>
+      <form class="addrow" id="addMem"><input id="addMemText" placeholder="Insegnagli qualcosa direttamente…"><button class="ghost small">+</button></form>
+      <div class="stats">
+        <div class="stat"><b id="sFacts">0</b><small>Ricordi</small></div>
+        <div class="stat"><b id="sMsgs">0</b><small>Messaggi</small></div>
+        <div class="stat"><b id="sLevel">1</b><small>Livello</small></div>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-rem" hidden>
+      <p class="hint">Chiedi a Jarvis "ricordami domani alle 9 di…" e ti avviserà con una notifica.</p>
+      <div class="list" id="rem"></div>
+    </section>
+
+    <section class="tab" id="tab-evo" hidden>
+      <p class="hint">Capacità che hai chiesto e che Jarvis non ha ancora. Copiale e incollale a Claude: verranno aggiunte con il prossimo aggiornamento.</p>
+      <div class="list" id="evo"></div>
+      <div class="row"><button class="ghost small" id="copyEvo">Copia lista</button><button class="ghost small" id="clearEvo">Svuota</button></div>
+    </section>
+
+    <section class="tab" id="tab-set" hidden>
+      <label>Chiave API Anthropic
+        <input type="password" id="apiKey" placeholder="sk-ant-…">
+      </label>
+      <div class="row"><button class="ghost small" id="saveKey">Salva chiave</button><a href="https://console.anthropic.com/settings/keys" target="_blank">Ottieni una chiave ↗</a></div>
+      <label>Modello
+        <select id="model">
+          <option value="claude-sonnet-5-5">Claude Sonnet 5.5 — equilibrato (consigliato)</option>
+          <option value="claude-opus-5-5">Claude Opus 5.5 — il più potente, costa di più</option>
+          <option value="claude-haiku-5-5">Claude Haiku 5.5 — veloce ed economico</option>
+        </select>
+      </label>
+      <label class="check"><input type="checkbox" id="webSearch"> Ricerca sul web</label>
+      <label class="check"><input type="checkbox" id="autostart"> Avvia con Windows</label>
+      <label>Scorciatoia per aprire/chiudere Jarvis
+        <input id="hotkey" placeholder="Alt+J">
+      </label>
+      <label>Voce di Jarvis
+        <select id="voiceName"></select>
+      </label>
+      <label>Canale aggiornamenti (GitHub utente/repo)
+        <input id="updateRepo" placeholder="tuo-utente/jarvis">
+      </label>
+      <div class="row"><button class="ghost small" id="checkUpd">Cerca aggiornamenti</button><span class="muted" id="updInfo"></span></div>
+      <div class="sep"></div>
+      <div class="row"><button class="ghost small" id="clearChat">Nuova conversazione</button><button class="ghost small" id="openData">Cartella dati</button></div>
+      <div class="row"><button class="ghost small danger" id="wipe">Reset totale memoria</button></div>
+      <p class="muted" id="ver"></p>
+    </section>
+  </aside>
+</div>
+
+<div class="modal" id="modal"><div class="box">
+  <h3 id="mTitle"></h3>
+  <pre id="mDetail"></pre>
+  <div class="row end"><button class="ghost" id="mNo">No</button><button class="ghost primary" id="mYes">Sì, procedi</button></div>
+</div></div>
+
+<div class="modal" id="onboard"><div class="box wide">
+  <div class="reactor big"></div>
+  <h3>Benvenuto. Sono Jarvis.</h3>
+  <p>Per pensare uso Claude tramite API. Mi serve la tua chiave personale (una volta sola: resta cifrata su questo PC).</p>
+  <ol>
+    <li>Apri <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> e accedi.</li>
+    <li>In <b>Billing</b> aggiungi un po' di credito (bastano 5–10 €).</li>
+    <li>In <b>API Keys</b> crea una chiave e incollala qui sotto.</li>
+  </ol>
+  <input type="password" id="obKey" placeholder="sk-ant-…">
+  <div class="row end"><button class="ghost primary" id="obSave">Attiva Jarvis</button></div>
+  <p class="muted" id="obErr"></p>
+</div></div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+# Ogni volta che viene pubblicato un tag "vX.Y.Z", GitHub costruisce l'installer Windows
+# e crea una Release. Jarvis sul PC la trova da solo, la scarica e si aggiorna.
+name: Build & Release Jarvis
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Build e pubblica
+        run: npx electron-builder --win --publish always -c.publish.owner=${{ github.repository_owner }} -c.publish.repo=${{ github.event.repository.name }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
