@@ -175,7 +175,7 @@
 
   $('form').addEventListener('submit', e => { e.preventDefault(); const t = input.value; input.value = ''; autosize(); sendMsg(t); });
   input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('form').requestSubmit(); } });
-  const autosize = () => { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 180) + 'px'; };
+  const autosize = () => { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 180) + 'px'; input.style.overflowY = input.scrollHeight > 180 ? 'auto' : 'hidden'; };
   input.addEventListener('input', autosize);
   $('stop').onclick = () => J.stop();
   log.addEventListener('click', e => {
