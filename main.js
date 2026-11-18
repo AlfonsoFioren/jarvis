@@ -9,7 +9,7 @@ let autoUpdater = null;
 try { autoUpdater = require('electron-updater').autoUpdater; } catch (e) { console.warn('updater non disponibile', e); }
 
 // Repository GitHub da cui arrivano gli aggiornamenti ("utente/repo"). Può essere cambiato dalle Impostazioni.
-const DEFAULT_UPDATE_REPO = '';
+const DEFAULT_UPDATE_REPO = 'AlfonsoFioren/jarvis';
 
 if (!app.requestSingleInstanceLock()) { app.quit(); process.exit(0); }
 app.setAppUserModelId('it.personale.jarvis');
