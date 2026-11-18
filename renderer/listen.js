@@ -9,8 +9,8 @@
   const MAX_UTTERANCE_MS = 15000;
 
   // varianti con cui Whisper può scrivere "Jarvis"
-  const WAKE = /\b(j|g|gi|ch|dj|y|h)[ae]r?[vbw][iy]s+e?\b/i;
-  const STRICT_WAKE = /\b(jarvis|giarvis|jarvi|jervis|gervis|jarbis|giarvi|charvis|jarviss|jarvys|jarwis|giarbis|jarves|harvis|jarvice|jarvise)\b/i;
+  const WAKE = /\b(j|g|gi|ch|dj|y|h|i)[ae]r?[vbw][iy]s+e?\b|\barvis\b/i;
+  const STRICT_WAKE = /\b(jarvis|giarvis|jarvi|jervis|gervis|jarbis|giarvi|charvis|jarviss|jarvys|jarwis|giarbis|jarves|harvis|jarvice|jarvise|iarvis|yarvis|arvis)\b/i;
   const STOP_WORDS = /\b(basta|stop|fermati|zitto|silenzio|smettila|ferma)\b/i;
   // frasi che Whisper "inventa" sul rumore
   const HALLUCINATIONS = /^\W*(sottotitoli\b.*|.*amara\.org.*|grazie per la visione.*|grazie a tutti per la visione.*|iscriviti al canale.*|musica|applausi|risate|silenzio|grazie\.?)\W*$|^\s*[\[(].*[\])]\s*$|^\W*$/i;
