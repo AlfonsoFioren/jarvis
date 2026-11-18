@@ -18,7 +18,8 @@
         <div class="sub" id="status">Avvio dei sistemi…</div>
       </div>
       <div class="hbtns">
-        <button class="ghost" id="voiceBtn" title="Risposte a voce">🔊 Voce</button>
+        <button class="ghost" id="earBtn" title="Ascolto continuo: dì «Jarvis»">👂 Ascolto</button>
+        <button class="ghost" id="voiceBtn" title="Leggi ad alta voce anche le risposte ai messaggi scritti">🔊 Voce</button>
         <button class="ghost" id="panelBtn" title="Pannello">☰</button>
       </div>
     </header>
@@ -28,7 +29,7 @@
     </div>
     <div id="log"></div>
     <form id="form">
-      <button type="button" class="round" id="mic" title="Detta a voce">
+      <button type="button" class="round" id="mic" title="Parla ora (senza dire «Jarvis»)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
       </button>
       <textarea id="input" rows="1" placeholder="Parla con Jarvis…  (Invio per inviare, Maiusc+Invio per andare a capo)"></textarea>
@@ -89,8 +90,27 @@
         <input id="hotkey" placeholder="Alt+J">
       </label>
       <label>Voce di Jarvis
-        <select id="voiceName"></select>
+        <select id="ttsVoice"></select>
       </label>
+      <label>Velocità della voce
+        <select id="ttsRate">
+          <option value="-12%">Lenta e calma</option>
+          <option value="-4%">Naturale</option>
+          <option value="+6%">Svelta</option>
+        </select>
+      </label>
+      <div class="row"><button class="ghost small" id="testVoice">▶ Prova la voce</button></div>
+      <div class="sep"></div>
+      <label class="check"><input type="checkbox" id="listen"> Ascolto continuo (dì «Jarvis»)</label>
+      <label class="check"><input type="checkbox" id="followUp"> Conversazione: dopo una risposta ascolta 6 secondi senza dover ridire «Jarvis»</label>
+      <label>Precisione dell'ascolto
+        <select id="sttModel">
+          <option value="small">Alta (consigliata, ~250 MB)</option>
+          <option value="base">Veloce (per PC meno potenti, ~80 MB)</option>
+        </select>
+      </label>
+      <p class="muted" id="heard"></p>
+      <div class="sep"></div>
       <label>Canale aggiornamenti (GitHub utente/repo)
         <input id="updateRepo" placeholder="tuo-utente/jarvis">
       </label>
@@ -123,6 +143,7 @@
   <p class="muted" id="obErr"></p>
 </div></div>
 
+<script src="listen.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -11,7 +11,7 @@ const MAX_STEPS = 12;      // giri massimi di uso strumenti per risposta
 let current = null;        // AbortController della risposta in corso
 let webSearchBroken = false;
 
-function systemPrompt(appVersion) {
+function systemPrompt(appVersion, opts = {}) {
   const s = store.get();
   const now = new Date().toLocaleString('it-IT', { dateStyle: 'full', timeStyle: 'short' });
   const facts = s.facts.length
@@ -23,6 +23,11 @@ function systemPrompt(appVersion) {
 Rispondi in italiano salvo diversa richiesta. Sii diretto e concreto. Le tue risposte possono essere lette ad alta voce, quindi preferisci frasi scorrevoli; usa markdown leggero (grassetto, elenchi brevi, blocchi di codice) solo quando serve davvero.
 
 Contesto: ${now}. PC: ${os.type()} ${os.release()}, utente Windows "${os.userInfo().username}". Versione Jarvis: ${appVersion}.
+
+IL TUO NOME
+- Ti chiami Jarvis. Quando l'utente dice "Jarvis" si rivolge sempre a te, anche se il riconoscimento vocale lo scrive in modo storpiato (Giarvis, Jervis, Gervis…).
+- L'utente può parlarti a voce in qualsiasi momento: sei sempre in ascolto e ti attivi quando sente il tuo nome.
+${opts.spoken ? `- QUESTO MESSAGGIO È STATO DETTO A VOCE e la tua risposta verrà letta ad alta voce: rispondi in modo naturale e parlato, breve (1-3 frasi salvo richieste di approfondimento), senza markdown, elenchi, simboli o link. Il testo può contenere piccoli errori di trascrizione: interpreta l'intenzione.` : ''}
 
 COME IMPARI E CRESCI
 - Hai una memoria permanente sul PC. Quando l'utente rivela qualcosa di durevole su di sé (nome, lavoro, progetti, obiettivi, preferenze, persone importanti, abitudini, istruzioni su come vuole che tu ti comporti) chiama "remember" con un fatto breve. Non salvare chiacchiere passeggere né dati sensibili come password o numeri di carte.
@@ -60,7 +65,7 @@ function stop() { if (current) current.abort(); }
 /**
  * h: { onDelta(text), onNote(text, kind), onChanged(), confirm(title, detail, danger) => Promise<bool> }
  */
-async function chat(userText, h, appVersion) {
+async function chat(userText, h, appVersion, opts = {}) {
   const s = store.get();
   const apiKey = store.getApiKey();
   if (!apiKey) throw new Error('NO_KEY');
@@ -86,7 +91,7 @@ async function chat(userText, h, appVersion) {
         const stream = client.messages.stream({
           model: s.settings.model || 'claude-sonnet-5-5',
           max_tokens: 8000,
-          system: systemPrompt(appVersion),
+          system: systemPrompt(appVersion, opts),
           messages: msgs,
           tools: toolList
         }, { signal: current.signal });

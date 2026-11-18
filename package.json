@@ -1,7 +1,7 @@
 {
   "name": "jarvis-desktop",
   "productName": "Jarvis",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Jarvis - assistente personale IA",
   "main": "main.js",
   "author": "Jarvis",
@@ -14,11 +14,14 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.10.0",
-    "electron-updater": "^6.3.9"
+    "@huggingface/transformers": "^4.3.2",
+    "electron-updater": "^6.3.9",
+    "msedge-tts": "^2.1.1"
   },
   "devDependencies": {
     "electron": "^33.2.1",
-    "electron-builder": "^25.1.8"
+    "electron-builder": "^25.1.8",
+    "mpg123-decoder": "^1.0.3"
   },
   "build": {
     "appId": "it.personale.jarvis",
@@ -30,7 +33,13 @@
       "renderer/**/*",
       "build/icon.png",
       "build/tray.png",
-      "package.json"
+      "package.json",
+      "!node_modules/onnxruntime-node/bin/napi-v*/linux/**",
+      "!node_modules/onnxruntime-node/bin/napi-v*/darwin/**",
+      "!node_modules/onnxruntime-node/bin/napi-v*/win32/arm64/**",
+      "!node_modules/onnxruntime-web/**",
+      "!node_modules/@huggingface/transformers/dist/*.web*",
+      "!node_modules/@huggingface/transformers/dist/ort-*"
     ],
     "directories": {
       "output": "dist",
@@ -59,6 +68,12 @@
     "publish": {
       "provider": "github",
       "releaseType": "release"
-    }
+    },
+    "asarUnpack": [
+      "node_modules/onnxruntime-node/**",
+      "node_modules/onnxruntime-common/**",
+      "node_modules/sharp/**",
+      "node_modules/@img/**"
+    ]
   }
 }

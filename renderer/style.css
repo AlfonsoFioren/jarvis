@@ -98,3 +98,9 @@ label.check{flex-direction:row;align-items:center;gap:8px;color:var(--text);font
 .modal pre{white-space:pre-wrap;word-break:break-word;background:#02050a;border:1px solid var(--line);border-radius:8px;padding:10px;max-height:300px;overflow:auto;font-size:12.5px;font-family:Consolas,monospace}
 .modal input{width:100%;padding:10px 12px;margin-top:6px}
 .modal ol{padding-left:1.2em;line-height:1.7;font-size:14px}
+
+#earBtn.on{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 12px rgba(62,230,255,.35)}
+#earBtn.hot{background:var(--cyan);color:var(--bg)}
+.reactor.listening{animation:pulse 1.2s ease-in-out infinite}
+.reactor.speaking::after{animation-duration:1s;border-style:solid}
+#mic.live{background:var(--cyan);color:var(--bg);animation:pulse 1s infinite}

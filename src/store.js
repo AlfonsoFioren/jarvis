@@ -20,7 +20,12 @@ const DEFAULTS = {
     voiceName: '',
     webSearch: true,
     hotkey: 'Alt+J',
-    updateRepo: ''      // "utente/repo" su GitHub
+    updateRepo: '',     // "utente/repo" su GitHub
+    listen: true,       // ascolto continuo con parola "Jarvis"
+    followUp: true,     // dopo una risposta ascolta 6 s senza bisogno di dire "Jarvis"
+    sttModel: 'small',  // 'base' (veloce) | 'small' (preciso)
+    ttsVoice: 'it-IT-GiuseppeMultilingualNeural',
+    ttsRate: '-4%'
   },
   apiKeyEnc: ''
 };

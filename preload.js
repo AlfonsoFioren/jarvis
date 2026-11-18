@@ -4,7 +4,14 @@ const on = (ch, fn) => { const h = (_e, p) => fn(p); ipcRenderer.on(ch, h); retu
 
 contextBridge.exposeInMainWorld('jarvis', {
   getState: () => ipcRenderer.invoke('state:get'),
-  send: text => ipcRenderer.invoke('chat:send', text),
+  send: (text, spoken = false) => ipcRenderer.invoke('chat:send', { text, spoken }),
+  ttsVoices: () => ipcRenderer.invoke('tts:voices'),
+  synth: text => ipcRenderer.invoke('tts:synth', text),
+  sttInit: () => ipcRenderer.invoke('stt:init'),
+  transcribe: audio => ipcRenderer.invoke('stt:transcribe', audio),
+  sttStop: () => ipcRenderer.invoke('stt:stop'),
+  wake: () => ipcRenderer.invoke('ui:wake'),
+  onSttStatus: fn => on('stt:status', fn),
   stop: () => ipcRenderer.invoke('chat:stop'),
   answerConfirm: (id, ok) => ipcRenderer.invoke('confirm:answer', { id, ok }),
   forget: id => ipcRenderer.invoke('memory:forget', id),

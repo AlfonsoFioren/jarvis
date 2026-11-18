@@ -1,9 +1,11 @@
 // Jarvis — processo principale: finestra, icona nella barra di sistema, scorciatoia, avvio con Windows,
 // promemoria e aggiornamenti automatici da GitHub.
-const { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, nativeImage, shell, Notification } = require('electron');
+const { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, nativeImage, shell, Notification, session } = require('electron');
 const path = require('path');
 const store = require('./src/store');
 const brain = require('./src/brain');
+const voice = require('./src/voice');
+const stt = require('./src/stt');
 
 let autoUpdater = null;
 try { autoUpdater = require('electron-updater').autoUpdater; } catch (e) { console.warn('updater non disponibile', e); }
@@ -34,7 +36,7 @@ function createWindow(show = true) {
   win = new BrowserWindow({
     width: 1120, height: 780, minWidth: 420, minHeight: 520,
     backgroundColor: '#05080d', show: false, autoHideMenuBar: true, title: 'Jarvis', icon: ICON,
-    webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true }
+    webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false }
   });
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
   win.once('ready-to-show', () => { if (show) win.show(); });
@@ -139,7 +141,9 @@ function publicState() {
 
 ipcMain.handle('state:get', () => publicState());
 
-ipcMain.handle('chat:send', async (_e, text) => {
+ipcMain.handle('chat:send', async (_e, payload) => {
+  const text = typeof payload === 'string' ? payload : payload?.text;
+  const spoken = typeof payload === 'object' && !!payload?.spoken;
   try {
     const answer = await brain.chat(String(text || ''), {
       onDelta: d => send('chat:delta', d),
@@ -151,7 +155,7 @@ ipcMain.handle('chat:send', async (_e, text) => {
         if (win && !win.isVisible()) showWindow();
         send('confirm:ask', { id, title, detail, danger: !!danger });
       })
-    }, app.getVersion());
+    }, app.getVersion(), { spoken });
     return { ok: true, answer };
   } catch (e) {
     let msg = String(e?.message || e);
@@ -184,13 +188,14 @@ ipcMain.handle('settings:set', (_e, patch) => {
   const s = store.get();
   if (typeof patch.apiKey === 'string') store.setApiKey(patch.apiKey);
   const oldHotkey = s.settings.hotkey;
-  const allowed = ['model', 'autostart', 'voice', 'voiceName', 'webSearch', 'hotkey', 'updateRepo'];
+  const allowed = ['model', 'autostart', 'voice', 'voiceName', 'webSearch', 'hotkey', 'updateRepo', 'listen', 'sttModel', 'ttsVoice', 'ttsRate', 'followUp'];
   for (const k of allowed) if (k in patch) s.settings[k] = patch[k];
   store.save();
   if ('autostart' in patch) applyAutostart();
   let hotkeyOk = true;
   if ('hotkey' in patch && patch.hotkey !== oldHotkey) hotkeyOk = applyHotkey(oldHotkey);
   if ('updateRepo' in patch) checkUpdates();
+  if ('sttModel' in patch) stt.setModel(patch.sttModel);
   return { ...publicState(), hotkeyOk };
 });
 
@@ -199,15 +204,37 @@ ipcMain.handle('update:install', () => { if (autoUpdater && updateState.status =
 ipcMain.handle('open:external', (_e, url) => { if (/^https?:\/\//i.test(url)) shell.openExternal(url); });
 ipcMain.handle('open:dataFolder', () => shell.showItemInFolder(store.FILE()));
 
+// ---------------- voce e ascolto ----------------
+ipcMain.handle('tts:voices', () => ({ voices: voice.VOICES, def: voice.DEFAULT_VOICE }));
+ipcMain.handle('tts:synth', async (_e, text) => {
+  const s = store.get().settings;
+  try {
+    const buf = await voice.synth(String(text || '').slice(0, 3000), { voice: s.ttsVoice || voice.DEFAULT_VOICE, rate: s.ttsRate || '-4%' });
+    return { ok: true, audio: new Uint8Array(buf) };
+  } catch (e) { return { ok: false, error: String(e?.message || e) }; }
+});
+ipcMain.handle('stt:init', () => stt.init(store.get().settings.sttModel || 'small', {
+  progress: st => send('stt:status', st), ready: st => send('stt:status', st), error: st => send('stt:status', st)
+}));
+ipcMain.handle('stt:transcribe', async (_e, audio) => {
+  try { const r = await stt.transcribe(audio); return { ok: true, text: r.text, ms: r.ms }; }
+  catch (e) { return { ok: false, error: String(e?.message || e) }; }
+});
+ipcMain.handle('stt:stop', () => stt.stop());
+ipcMain.handle('ui:wake', () => { if (win && !win.isVisible()) win.showInactive(); });
+
 // ---------------- avvio ----------------
 app.on('second-instance', showWindow);
-app.on('before-quit', () => { quitting = true; store.flush(); });
+app.on('before-quit', () => { quitting = true; store.flush(); stt.stop(); });
 app.on('will-quit', () => globalShortcut.unregisterAll());
 app.on('window-all-closed', () => { /* resta attivo nella barra di sistema */ });
 
 app.whenReady().then(() => {
   store.load();
   Menu.setApplicationMenu(null);
+  const media = p => p === 'media' || p === 'audioCapture' || p === 'speaker-selection';
+  session.defaultSession.setPermissionRequestHandler((_wc, perm, cb) => cb(media(perm) || perm === 'clipboard-sanitized-write'));
+  session.defaultSession.setPermissionCheckHandler((_wc, perm) => media(perm) || perm === 'clipboard-sanitized-write');
   createWindow(!process.argv.includes('--hidden'));
   createTray();
   applyAutostart();
